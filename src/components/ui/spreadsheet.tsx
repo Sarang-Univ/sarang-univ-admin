@@ -6,8 +6,8 @@ import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
 import 'handsontable/dist/handsontable.full.min.css';
 import { registerAllModules } from 'handsontable/registry';
-import TestButton from './testButton';
-import { customRenderer} from './customRenderer';
+import TestButton from './test-button';
+import { customRenderer} from './custom-renderer';
 
 registerAllModules();
 

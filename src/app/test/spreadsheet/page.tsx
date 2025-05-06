@@ -1,7 +1,7 @@
 'use client';
 
 import Spreadsheet from '@/components/ui/spreadsheet';
-import TestButton from "@/components/ui/testButton";
+import TestButton from "@/components/ui/test-button";
 
 
 // spreadsheet test 페이지
