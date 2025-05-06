@@ -11,6 +11,9 @@ import Header from "@/components/common/Header";
 import Sidebar from "@/components/common/Sidebar";
 import Footer from "@/components/common/Footer";
 import Toast from "@/components/common/Toast";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/components/AuthProvider";
+import { ProtectedLayout } from "@/components/ProtectedLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 

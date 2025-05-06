@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useAuth } from "./auth-provider"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/sidebar"
+import { useAuth } from "./AuthProvider";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/Sidebar";
 
 export function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <>{children}</>
+    return <>{children}</>;
   }
 
   return (
@@ -20,5 +20,5 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </SidebarProvider>
-  )
+  );
 }
