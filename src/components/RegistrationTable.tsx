@@ -28,6 +28,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import * as XLSX from "xlsx";
+import { useToast } from "@/hooks/use-toast";
+import { useAlertDialog } from "@/components/common/AlertDialogProvider";
 
 // 부서별 Mock 데이터 생성
 const generateMockDataForDepartment = (department: number) => {
@@ -141,6 +143,8 @@ const generateMockDataForDepartment = (department: number) => {
 export function RegistrationTable({ department }: { department: number }) {
   const [data, setData] = useState<any[]>([]);
   const [filters, setFilters] = useState({});
+  const { toast } = useToast();
+  const showAlert = useAlertDialog();
 
   // 부서가 변경될 때마다 데이터 업데이트
   useEffect(() => {
@@ -214,7 +218,9 @@ export function RegistrationTable({ department }: { department: number }) {
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return `${date.getMonth() + 1}월 ${date.getDate()}일 오후 ${date.getHours()}시 ${date.getMinutes()}분`;
+    return `${
+      date.getMonth() + 1
+    }월 ${date.getDate()}일 오후 ${date.getHours()}시 ${date.getMinutes()}분`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -274,6 +280,19 @@ export function RegistrationTable({ department }: { department: number }) {
         return row;
       })
     );
+    showAlert.show({
+      title: "정말 입금 확인하시겠습니까?",
+      description: "이 작업은 되돌릴 수 없습니다.",
+      //actionText: "삭제",
+      //cancelText: "취소",
+      onConfirm: () => {
+        toast({
+          title: "입금 확인 문자 전송",
+          description: "입금 확인 문자가 성공적으로 전송되었습니다.",
+          variant: "success",
+        });
+      },
+    });
   };
 
   const handleCompleteRefund = (id: number) => {
@@ -290,6 +309,19 @@ export function RegistrationTable({ department }: { department: number }) {
         return row;
       })
     );
+    showAlert.show({
+      title: "정말 환불하시겠습니까?",
+      description: "이 작업은 되돌릴 수 없습니다.",
+      //actionText: "삭제",
+      //cancelText: "취소",
+      onConfirm: () => {
+        toast({
+          title: "환불 문자 전송 실패",
+          description: "환불 문자 전송이 실패했습니다.",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const getActionButton = (row: any) => {
@@ -337,10 +369,10 @@ export function RegistrationTable({ department }: { department: number }) {
         row.status === "waiting"
           ? "입금 확인 대기"
           : row.status === "confirmed"
-            ? "입금 확인 완료"
-            : row.status === "refund_requested"
-              ? "환불 처리 대기"
-              : "환불 처리 완료",
+          ? "입금 확인 완료"
+          : row.status === "refund_requested"
+          ? "환불 처리 대기"
+          : "환불 처리 완료",
       입금확인자명: row.confirmedBy || "-",
       입금확인일시: row.paymentConfirmedAt
         ? formatDate(row.paymentConfirmedAt)
@@ -357,7 +389,9 @@ export function RegistrationTable({ department }: { department: number }) {
     // 엑셀 파일 다운로드
     XLSX.writeFile(
       wb,
-      `신청현황및입금조회_${department}부_${new Date().toISOString().split("T")[0]}.xlsx`
+      `신청현황및입금조회_${department}부_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`
     );
   };
 

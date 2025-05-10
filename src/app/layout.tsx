@@ -10,7 +10,9 @@ import RootLayoutProvider from "./components/RootLayoutProvider";
 import Header from "@/components/common/Header";
 import Sidebar from "@/components/common/Sidebar";
 import Footer from "@/components/common/Footer";
-import Toast from "@/components/common/Toast";
+//import Toast from "@/components/common/Toast";
+import { Toaster } from "@/components/ui/toaster";
+import { AlertDialogProvider } from "@/components/common/AlertDialogProvider"
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
@@ -31,13 +33,15 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body className={inter.className}>
         <RootLayoutProvider>
+          <AlertDialogProvider>
           <Header />
           <div className="flex min-h-screen">
             <Sidebar />
             <main className="flex-1">{children}</main>
           </div>
           <Footer />
-          <Toast />
+          <Toaster />
+          </AlertDialogProvider>
         </RootLayoutProvider>
       </body>
     </html>
