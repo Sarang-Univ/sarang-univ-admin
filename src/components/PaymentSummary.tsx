@@ -1,4 +1,4 @@
-import { SummaryTable } from "./summary-table"
+import { SummaryTable } from "./SummaryTable";
 
 export function PaymentSummary() {
   // 동적 데이터를 위한 예시 데이터
@@ -9,7 +9,7 @@ export function PaymentSummary() {
     { id: "military_request", header: "군지체 신청 요청" },
     { id: "refund_requested", header: "환불 요청" },
     { id: "refund_completed", header: "환불 완료" },
-  ]
+  ];
 
   const rows = [
     {
@@ -120,7 +120,14 @@ export function PaymentSummary() {
         refund_completed: <span className="font-semibold">9명</span>,
       },
     },
-  ]
+  ];
 
-  return <SummaryTable title="입금완료 집계 표" description="부서별 입금 및 환불 현황" columns={columns} rows={rows} />
+  return (
+    <SummaryTable
+      title="입금완료 집계 표"
+      description="부서별 입금 및 환불 현황"
+      columns={columns}
+      rows={rows}
+    />
+  );
 }

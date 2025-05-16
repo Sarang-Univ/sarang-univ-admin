@@ -1,9 +1,9 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PaymentSummary } from "@/components/payment-summary"
-import { MealAccommodationTable } from "@/components/meal-accommodation-table"
-import { RegistrationTable } from "@/components/registration-table"
-import { AccountStatus } from "@/components/account-status"
-import { TransactionSummary } from "@/components/transaction-summary"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PaymentSummary } from "@/components/PaymentSummary";
+import { MealAccommodationTable } from "@/components/MealAccommodationTable";
+import { RegistrationTable } from "@/components/RegistrationTable";
+import { AccountStatus } from "@/components/AccountStatus";
+import { TransactionSummary } from "@/components/TransactionSummary";
 
 export default function PaymentPage() {
   return (
@@ -27,7 +27,7 @@ export default function PaymentPage() {
           <TabsTrigger value="7">7부</TabsTrigger>
           <TabsTrigger value="8">8부</TabsTrigger>
         </TabsList>
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((department) => (
+        {[1, 2, 3, 4, 5, 6, 7, 8].map(department => (
           <TabsContent key={department} value={department.toString()}>
             <RegistrationTable department={department} />
           </TabsContent>
@@ -36,5 +36,5 @@ export default function PaymentPage() {
 
       <AccountStatus />
     </div>
-  )
+  );
 }

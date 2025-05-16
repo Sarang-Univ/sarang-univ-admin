@@ -1,12 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { SearchBar, type FilterOption } from "./search-bar"
-import { Check, Download, CheckCircle2, RotateCcw, Clock, CheckCheck, RefreshCcw } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import * as XLSX from "xlsx"
+import { useState, useEffect } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { SearchBar, type FilterOption } from "./SearchBar";
+import {
+  Check,
+  Download,
+  CheckCircle2,
+  RotateCcw,
+  Clock,
+  CheckCheck,
+  RefreshCcw,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import * as XLSX from "xlsx";
+import { useToast } from "@/hooks/use-toast";
+import { useAlertDialog } from "@/components/common/AlertDialogProvider";
 
 // 부서별 Mock 데이터 생성
 const generateMockDataForDepartment = (department: number) => {
@@ -64,7 +87,7 @@ const generateMockDataForDepartment = (department: number) => {
       paymentConfirmedAt: "2023-05-22T14:30:00",
       confirmedBy: "박회계",
     },
-  ]
+  ];
 
   // 부서별로 추가 데이터 생성
   if (department % 2 === 0) {
@@ -81,7 +104,7 @@ const generateMockDataForDepartment = (department: number) => {
       status: "refund_requested",
       paymentConfirmedAt: "2023-05-21T20:21:00",
       confirmedBy: "김재정",
-    })
+    });
   } else {
     // 홀수 부서에는 군지체 케이스 추가
     baseData.push({
@@ -96,7 +119,7 @@ const generateMockDataForDepartment = (department: number) => {
       status: "confirmed",
       paymentConfirmedAt: "2023-05-23T09:15:00",
       confirmedBy: "이간사",
-    })
+    });
   }
 
   // 모든 부서에 환불 완료 케이스 추가
@@ -112,19 +135,21 @@ const generateMockDataForDepartment = (department: number) => {
     status: "refund_completed",
     paymentConfirmedAt: "2023-05-24T11:45:00",
     confirmedBy: "박회계",
-  })
+  });
 
-  return baseData
-}
+  return baseData;
+};
 
 export function RegistrationTable({ department }: { department: number }) {
-  const [data, setData] = useState<any[]>([])
-  const [filters, setFilters] = useState({})
+  const [data, setData] = useState<any[]>([]);
+  const [filters, setFilters] = useState({});
+  const { toast } = useToast();
+  const showAlert = useAlertDialog();
 
   // 부서가 변경될 때마다 데이터 업데이트
   useEffect(() => {
-    setData(generateMockDataForDepartment(department))
-  }, [department])
+    setData(generateMockDataForDepartment(department));
+  }, [department]);
 
   // 검색 필터 옵션 정의
   const filterOptions: FilterOption[] = [
@@ -182,19 +207,21 @@ export function RegistrationTable({ department }: { department: number }) {
       label: "신청일",
       type: "date",
     },
-  ]
+  ];
 
   const handleSearch = (newFilters: any) => {
-    setFilters(newFilters)
+    setFilters(newFilters);
     // In a real app, you would filter the data based on the filters
-    console.log("Applied filters:", newFilters)
-  }
+    console.log("Applied filters:", newFilters);
+  };
 
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return ""
-    const date = new Date(dateString)
-    return `${date.getMonth() + 1}월 ${date.getDate()}일 오후 ${date.getHours()}시 ${date.getMinutes()}분`
-  }
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return `${
+      date.getMonth() + 1
+    }월 ${date.getDate()}일 오후 ${date.getHours()}시 ${date.getMinutes()}분`;
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -202,66 +229,100 @@ export function RegistrationTable({ department }: { department: number }) {
         return (
           <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-yellow-50 border border-yellow-200">
             <Clock className="h-3.5 w-3.5 text-yellow-500 mr-1.5" />
-            <span className="text-xs font-medium text-yellow-700">입금 확인 대기</span>
+            <span className="text-xs font-medium text-yellow-700">
+              입금 확인 대기
+            </span>
           </div>
-        )
+        );
       case "confirmed":
         return (
           <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
             <CheckCheck className="h-3.5 w-3.5 text-green-500 mr-1.5" />
-            <span className="text-xs font-medium text-green-700">입금 확인 완료</span>
+            <span className="text-xs font-medium text-green-700">
+              입금 확인 완료
+            </span>
           </div>
-        )
+        );
       case "refund_requested":
         return (
           <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200">
             <RefreshCcw className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
-            <span className="text-xs font-medium text-blue-700">환불 처리 대기</span>
+            <span className="text-xs font-medium text-blue-700">
+              환불 처리 대기
+            </span>
           </div>
-        )
+        );
       case "refund_completed":
         return (
           <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200">
             <RotateCcw className="h-3.5 w-3.5 text-purple-500 mr-1.5" />
-            <span className="text-xs font-medium text-purple-700">환불 처리 완료</span>
+            <span className="text-xs font-medium text-purple-700">
+              환불 처리 완료
+            </span>
           </div>
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const handleConfirmPayment = (id: number) => {
-    setData((prevData) =>
-      prevData.map((row) => {
+    setData(prevData =>
+      prevData.map(row => {
         if (row.id === id) {
           return {
             ...row,
             status: "confirmed",
             paymentConfirmedAt: new Date().toISOString(),
             confirmedBy: "현재 사용자", // 실제 앱에서는 로그인한 사용자 정보를 사용
-          }
+          };
         }
-        return row
-      }),
-    )
-  }
+        return row;
+      })
+    );
+    showAlert.show({
+      title: "정말 입금 확인하시겠습니까?",
+      description: "이 작업은 되돌릴 수 없습니다.",
+      //actionText: "삭제",
+      //cancelText: "취소",
+      onConfirm: () => {
+        toast({
+          title: "입금 확인 문자 전송",
+          description: "입금 확인 문자가 성공적으로 전송되었습니다.",
+          variant: "success",
+        });
+      },
+    });
+  };
 
   const handleCompleteRefund = (id: number) => {
-    setData((prevData) =>
-      prevData.map((row) => {
+    setData(prevData =>
+      prevData.map(row => {
         if (row.id === id) {
           return {
             ...row,
             status: "refund_completed",
             paymentConfirmedAt: new Date().toISOString(),
             confirmedBy: "현재 사용자", // 실제 앱에서는 로그인한 사용자 정보를 사용
-          }
+          };
         }
-        return row
-      }),
-    )
-  }
+        return row;
+      })
+    );
+    showAlert.show({
+      title: "정말 환불하시겠습니까?",
+      description: "이 작업은 되돌릴 수 없습니다.",
+      //actionText: "삭제",
+      //cancelText: "취소",
+      onConfirm: () => {
+        toast({
+          title: "환불 문자 전송 실패",
+          description: "환불 문자 전송이 실패했습니다.",
+          variant: "destructive",
+        });
+      },
+    });
+  };
 
   const getActionButton = (row: any) => {
     switch (row.status) {
@@ -276,7 +337,7 @@ export function RegistrationTable({ department }: { department: number }) {
             <CheckCircle2 className="h-3.5 w-3.5" />
             <span>입금 확인</span>
           </Button>
-        )
+        );
       case "refund_requested":
         return (
           <Button
@@ -288,15 +349,15 @@ export function RegistrationTable({ department }: { department: number }) {
             <RotateCcw className="h-3.5 w-3.5" />
             <span>환불 처리</span>
           </Button>
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const exportToExcel = () => {
     // 엑셀로 변환할 데이터 준비
-    const exportData = data.map((row) => ({
+    const exportData = data.map(row => ({
       부서: row.department,
       성별: row.gender,
       학년: row.grade,
@@ -308,24 +369,31 @@ export function RegistrationTable({ department }: { department: number }) {
         row.status === "waiting"
           ? "입금 확인 대기"
           : row.status === "confirmed"
-            ? "입금 확인 완료"
-            : row.status === "refund_requested"
-              ? "환불 처리 대기"
-              : "환불 처리 완료",
+          ? "입금 확인 완료"
+          : row.status === "refund_requested"
+          ? "환불 처리 대기"
+          : "환불 처리 완료",
       입금확인자명: row.confirmedBy || "-",
-      입금확인일시: row.paymentConfirmedAt ? formatDate(row.paymentConfirmedAt) : "-",
-    }))
+      입금확인일시: row.paymentConfirmedAt
+        ? formatDate(row.paymentConfirmedAt)
+        : "-",
+    }));
 
     // 워크시트 생성
-    const ws = XLSX.utils.json_to_sheet(exportData)
+    const ws = XLSX.utils.json_to_sheet(exportData);
 
     // 워크북 생성 및 워크시트 추가
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, "신청현황및입금조회")
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "신청현황및입금조회");
 
     // 엑셀 파일 다운로드
-    XLSX.writeFile(wb, `신청현황및입금조회_${department}부_${new Date().toISOString().split("T")[0]}.xlsx`)
-  }
+    XLSX.writeFile(
+      wb,
+      `신청현황및입금조회_${department}부_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`
+    );
+  };
 
   return (
     <Card className="shadow-sm">
@@ -366,7 +434,7 @@ export function RegistrationTable({ department }: { department: number }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((row) => (
+                {data.map(row => (
                   <TableRow key={row.id} className="hover:bg-gray-50">
                     <TableCell>{row.department}</TableCell>
                     <TableCell>{row.gender}</TableCell>
@@ -375,16 +443,22 @@ export function RegistrationTable({ department }: { department: number }) {
                     <TableCell>
                       <div className="flex space-x-1">
                         {row.schedule.map((day: boolean, i: number) =>
-                          day ? <Check key={i} className="h-4 w-4 text-green-600" /> : null,
+                          day ? (
+                            <Check key={i} className="h-4 w-4 text-green-600" />
+                          ) : null
                         )}
                       </div>
                     </TableCell>
                     <TableCell>{row.type || "-"}</TableCell>
-                    <TableCell className="font-medium">{row.amount.toLocaleString()}원</TableCell>
+                    <TableCell className="font-medium">
+                      {row.amount.toLocaleString()}원
+                    </TableCell>
                     <TableCell>{getStatusBadge(row.status)}</TableCell>
                     <TableCell>{getActionButton(row)}</TableCell>
                     <TableCell>{row.confirmedBy || "-"}</TableCell>
-                    <TableCell className="text-gray-600 text-sm">{formatDate(row.paymentConfirmedAt)}</TableCell>
+                    <TableCell className="text-gray-600 text-sm">
+                      {formatDate(row.paymentConfirmedAt)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -393,5 +467,5 @@ export function RegistrationTable({ department }: { department: number }) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
