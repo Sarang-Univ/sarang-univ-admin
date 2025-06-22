@@ -142,6 +142,8 @@ export function RetreatScheduleChangeRequestTable({
     }
   }, [registrations, schedules, addToast]);
 
+
+
   useEffect(() => {
     let dataToFilter = [...data];
 
@@ -259,6 +261,11 @@ export function RetreatScheduleChangeRequestTable({
       // 사용할 스케줄 데이터 결정
       const schedulesToUse =
         retreatInfo && retreatInfo.schedule ? retreatInfo.schedule : schedules;
+      
+      if (!selectedRow) {
+        console.error("selectedRow is null or undefined");
+        return;
+      }
 
       const calculatedNewPrice = calculateRegistrationPrice(
         selectedRow.type,
@@ -296,7 +303,7 @@ export function RetreatScheduleChangeRequestTable({
     if (row.scheduleIds && row.scheduleIds.length > 0) {
       // 리트릿 정보가 로드되었는지 확인
       if (retreatInfo) {
-        calculateNewPrice(row.scheduleIds);
+        //calculateNewPrice(row.scheduleIds);
       } else {
         // 필요한 정보가 없으면 토스트 메시지 표시
         addToast({
@@ -337,6 +344,7 @@ export function RetreatScheduleChangeRequestTable({
 
           // 데이터 갱신
           await mutate(registrationsEndpoint);
+          //console.log("After mutate: " + JSON.stringify(updated));
 
           addToast({
             title: "성공",
