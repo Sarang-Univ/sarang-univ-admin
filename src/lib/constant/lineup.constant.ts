@@ -1,6 +1,6 @@
 // src/constants/lineup.constant.ts
 
-export const COMPLETE_GROUP_ROW_COUNT = 6;
+export const COMPLETE_GROUP_ROW_COUNT = 5;
 
 // constants/lineup.constant.ts
 
