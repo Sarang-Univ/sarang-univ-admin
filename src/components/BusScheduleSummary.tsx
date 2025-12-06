@@ -9,13 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import html2canvas from "html2canvas";
@@ -25,10 +18,9 @@ import {
   UserRetreatShuttleBusPaymentStatus,
 } from "@/types";
 import { IUserBusRegistration } from "@/hooks/use-user-bus-registration";
-import { IUnivGroupStaffBus } from "@/hooks/use-univ-group-staff-bus";
 
 interface BusScheduleSummaryProps {
-  registrations: IUserBusRegistration[] | IUnivGroupStaffBus[];
+  registrations: IUserBusRegistration[];
   schedules: TRetreatShuttleBus[];
 }
 
@@ -234,27 +226,25 @@ export function BusScheduleSummary({
   const showEmptyMessage = schedules.length === 0 || registrations.length === 0;
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="bg-gray-50 border-b">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>버스 인원 집계 표</CardTitle>
-            <CardDescription>수양회 버스 인원 현황</CardDescription>
-          </div>
-          <Button
-            onClick={handleDownloadImage}
-            disabled={isDownloading}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            {isDownloading ? "다운로드 중..." : "이미지 다운로드"}
-          </Button>
+    <div className="space-y-3 md:space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">버스 인원 집계 표</h2>
+          <p className="text-sm text-muted-foreground mt-1">수양회 버스 인원 현황</p>
         </div>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div ref={tableRef} className="overflow-x-auto">
+        <Button
+          onClick={handleDownloadImage}
+          disabled={isDownloading}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          {isDownloading ? "다운로드 중..." : "이미지 다운로드"}
+        </Button>
+      </div>
+      <div ref={tableRef}>
+        <div className="overflow-x-auto rounded-md border">
           <Table className="min-w-full whitespace-nowrap">
             <TableHeader className="bg-gray-100">
               <TableRow>
@@ -341,7 +331,7 @@ export function BusScheduleSummary({
             </TableBody>
           </Table>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
