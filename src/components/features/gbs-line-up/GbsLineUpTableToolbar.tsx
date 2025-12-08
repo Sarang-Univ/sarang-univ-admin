@@ -118,102 +118,114 @@ export function GbsLineUpTableToolbar({
 
   // 부서 GBS 꼬리표 다운로드
   const handleDownloadUnivGbsLabel = async () => {
-    setLoadingStates((prev) => ({ ...prev, exportDepartmentGbsTags: true }));
-    try {
-      const response = await webAxios.get(
-        `/api/v1/retreat/${retreatSlug}/line-up/univ-gbs-label`,
-        { responseType: "blob" }
-      );
+    addToast({
+      title: "안내",
+      description: "준비중입니다.",
+      variant: "warning",
+    });
+    // TODO: API 준비 후 활성화
+    // setLoadingStates((prev) => ({ ...prev, exportDepartmentGbsTags: true }));
+    // try {
+    //   const response = await webAxios.get(
+    //     `/api/v1/retreat/${retreatSlug}/line-up/univ-gbs-label`,
+    //     { responseType: "blob" }
+    //   );
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `부서_GBS_꼬리표_${formatDate(new Date().toISOString())}.zip`
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+    //   const url = window.URL.createObjectURL(new Blob([response.data]));
+    //   const link = document.createElement("a");
+    //   link.href = url;
+    //   link.setAttribute(
+    //     "download",
+    //     `부서_GBS_꼬리표_${formatDate(new Date().toISOString())}.zip`
+    //   );
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   link.remove();
+    //   window.URL.revokeObjectURL(url);
 
-      addToast({
-        title: "성공",
-        description: "부서 GBS 꼬리표 파일이 다운로드되었습니다.",
-        variant: "success",
-      });
-    } catch (error) {
-      console.error("부서 GBS 꼬리표 다운로드 중 오류 발생:", error);
-      let errorMessage = "부서 GBS 꼬리표 다운로드 중 오류가 발생했습니다.";
+    //   addToast({
+    //     title: "성공",
+    //     description: "부서 GBS 꼬리표 파일이 다운로드되었습니다.",
+    //     variant: "success",
+    //   });
+    // } catch (error) {
+    //   console.error("부서 GBS 꼬리표 다운로드 중 오류 발생:", error);
+    //   let errorMessage = "부서 GBS 꼬리표 다운로드 중 오류가 발생했습니다.";
 
-      if (error instanceof AxiosError && error.response?.data instanceof Blob) {
-        try {
-          const text = await error.response.data.text();
-          const errorData = JSON.parse(text);
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch {
-          errorMessage = `서버 오류: ${error.response.status} ${error.response.statusText}`;
-        }
-      }
+    //   if (error instanceof AxiosError && error.response?.data instanceof Blob) {
+    //     try {
+    //       const text = await error.response.data.text();
+    //       const errorData = JSON.parse(text);
+    //       errorMessage = errorData.message || errorData.error || errorMessage;
+    //     } catch {
+    //       errorMessage = `서버 오류: ${error.response.status} ${error.response.statusText}`;
+    //     }
+    //   }
 
-      addToast({
-        title: "오류 발생",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, exportDepartmentGbsTags: false }));
-    }
+    //   addToast({
+    //     title: "오류 발생",
+    //     description: errorMessage,
+    //     variant: "destructive",
+    //   });
+    // } finally {
+    //   setLoadingStates((prev) => ({ ...prev, exportDepartmentGbsTags: false }));
+    // }
   };
 
   // 수양회 GBS 꼬리표 다운로드
   const handleDownloadRetreatGbsLabel = async () => {
-    setLoadingStates((prev) => ({ ...prev, exportRetreatGbsTags: true }));
-    try {
-      const response = await webAxios.get(
-        `/api/v1/retreat/${retreatSlug}/line-up/retreat-gbs-label`,
-        { responseType: "blob" }
-      );
+    addToast({
+      title: "안내",
+      description: "준비중입니다.",
+      variant: "warning",
+    });
+    // TODO: API 준비 후 활성화
+    // setLoadingStates((prev) => ({ ...prev, exportRetreatGbsTags: true }));
+    // try {
+    //   const response = await webAxios.get(
+    //     `/api/v1/retreat/${retreatSlug}/line-up/retreat-gbs-label`,
+    //     { responseType: "blob" }
+    //   );
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `수양회_GBS_꼬리표_${formatDate(new Date().toISOString())}.zip`
-      );
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+    //   const url = window.URL.createObjectURL(new Blob([response.data]));
+    //   const link = document.createElement("a");
+    //   link.href = url;
+    //   link.setAttribute(
+    //     "download",
+    //     `수양회_GBS_꼬리표_${formatDate(new Date().toISOString())}.zip`
+    //   );
+    //   document.body.appendChild(link);
+    //   link.click();
+    //   link.remove();
+    //   window.URL.revokeObjectURL(url);
 
-      addToast({
-        title: "성공",
-        description: "수양회 GBS 꼬리표 파일이 다운로드되었습니다.",
-        variant: "success",
-      });
-    } catch (error) {
-      console.error("수양회 GBS 꼬리표 다운로드 중 오류 발생:", error);
-      let errorMessage = "수양회 GBS 꼬리표 다운로드 중 오류가 발생했습니다.";
+    //   addToast({
+    //     title: "성공",
+    //     description: "수양회 GBS 꼬리표 파일이 다운로드되었습니다.",
+    //     variant: "success",
+    //   });
+    // } catch (error) {
+    //   console.error("수양회 GBS 꼬리표 다운로드 중 오류 발생:", error);
+    //   let errorMessage = "수양회 GBS 꼬리표 다운로드 중 오류가 발생했습니다.";
 
-      if (error instanceof AxiosError && error.response?.data instanceof Blob) {
-        try {
-          const text = await error.response.data.text();
-          const errorData = JSON.parse(text);
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch {
-          errorMessage = `서버 오류: ${error.response.status} ${error.response.statusText}`;
-        }
-      }
+    //   if (error instanceof AxiosError && error.response?.data instanceof Blob) {
+    //     try {
+    //       const text = await error.response.data.text();
+    //       const errorData = JSON.parse(text);
+    //       errorMessage = errorData.message || errorData.error || errorMessage;
+    //     } catch {
+    //       errorMessage = `서버 오류: ${error.response.status} ${error.response.statusText}`;
+    //     }
+    //   }
 
-      addToast({
-        title: "오류 발생",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingStates((prev) => ({ ...prev, exportRetreatGbsTags: false }));
-    }
+    //   addToast({
+    //     title: "오류 발생",
+    //     description: errorMessage,
+    //     variant: "destructive",
+    //   });
+    // } finally {
+    //   setLoadingStates((prev) => ({ ...prev, exportRetreatGbsTags: false }));
+    // }
   };
 
   // ✅ 3-State 토글 함수: none → include → exclude → none
@@ -240,12 +252,14 @@ export function GbsLineUpTableToolbar({
     (mode) => mode !== 'none'
   ).length;
 
-  // 컬럼명 매핑
-  const getColumnName = (id: string): string => {
+  // 컬럼명 매핑 (스케줄 라벨 참조를 위해 useMemo 사용)
+  const getColumnName = useMemo(() => {
     const names: Record<string, string> = {
       gbsNumber: "GBS 번호",
-      attendance: "전참/부분참",
-      genderCount: "남/여",
+      fullAttendanceCount: "전참",
+      partialAttendanceCount: "부분참",
+      maleCount: "남",
+      femaleCount: "여",
       department: "부서",
       gender: "성별",
       grade: "학년",
@@ -258,15 +272,16 @@ export function GbsLineUpTableToolbar({
       gbsMemo: "GBS 메모",
       scheduleMemo: "일정변동 요청",
       adminMemo: "행정간사 메모",
+      detailInfo: "상세",
     };
 
-    // 스케줄 컬럼
-    if (id.startsWith("schedule_")) {
-      return `스케줄 ${id.replace("schedule_", "")}`;
-    }
+    // 스케줄 컬럼 라벨 매핑 추가
+    scheduleColumnsMeta.forEach((col) => {
+      names[col.key] = col.label;
+    });
 
-    return names[id] || id;
-  };
+    return (id: string): string => names[id] || id;
+  }, [scheduleColumnsMeta]);
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">

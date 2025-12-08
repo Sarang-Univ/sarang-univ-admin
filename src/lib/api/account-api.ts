@@ -2,6 +2,18 @@ import { webAxios } from "@/lib/api/axios";
 import { IRetreatRegistration } from "@/types/account";
 
 /**
+ * 재정간사 메모 응답 타입
+ */
+export interface IAccountMemoResponse {
+  id: number;
+  userRetreatRegistrationId: number;
+  memo: string;
+  adminUserId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * 재정 간사 수양회 신청 API 클라이언트
  *
  * @description
@@ -74,43 +86,47 @@ export const AccountStaffAPI = {
   },
 
   /**
-   * 회계 메모 저장 (신규 생성)
+   * 재정간사 메모 저장 (신규 생성)
    *
    * @param retreatSlug - 수양회 슬러그
    * @param registrationId - 신청 ID
    * @param memo - 메모 내용
+   * @returns 생성된 메모 데이터 (id 포함)
    */
   saveAccountMemo: async (
     retreatSlug: string,
     registrationId: string,
     memo: string
-  ): Promise<void> => {
-    await webAxios.post(
+  ): Promise<IAccountMemoResponse> => {
+    const response = await webAxios.post(
       `/api/v1/retreat/${retreatSlug}/account/${registrationId}/account-memo`,
       { memo }
     );
+    return response.data.createdAccountMemo;
   },
 
   /**
-   * 회계 메모 수정
+   * 재정간사 메모 수정
    *
    * @param retreatSlug - 수양회 슬러그
    * @param memoId - 메모 ID
    * @param memo - 수정할 메모 내용
+   * @returns 수정된 메모 데이터
    */
   updateAccountMemo: async (
     retreatSlug: string,
     memoId: number,
     memo: string
-  ): Promise<void> => {
-    await webAxios.put(
+  ): Promise<IAccountMemoResponse> => {
+    const response = await webAxios.put(
       `/api/v1/retreat/${retreatSlug}/account/${memoId}/account-memo`,
       { memo }
     );
+    return response.data.updatedAccountMemo;
   },
 
   /**
-   * 회계 메모 삭제
+   * 재정간사 메모 삭제
    *
    * @param retreatSlug - 수양회 슬러그
    * @param memoId - 메모 ID

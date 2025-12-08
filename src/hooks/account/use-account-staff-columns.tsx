@@ -240,6 +240,7 @@ export function useAccountStaffColumns(
         size: 140,
       }),
 
+      // ✅ 입금 현황 + 액션 (세로 배치)
       columnHelper.accessor("status", {
         id: "status",
         header: ({ column, table }) => (
@@ -260,14 +261,20 @@ export function useAccountStaffColumns(
             }}
           />
         ),
-        cell: (info) => (
+        cell: (props) => (
           <div className="text-center px-2 py-1 whitespace-nowrap shrink-0">
-            <StatusBadge status={info.getValue() as any} />
+            <div className="flex flex-col items-center gap-1">
+              <StatusBadge status={props.getValue() as any} />
+              <AccountStaffRegistrationTableActions
+                row={props.row.original}
+                retreatSlug={retreatSlug}
+              />
+            </div>
           </div>
         ),
         filterFn: arrayIncludesFilterFn,
         enableColumnFilter: true,
-        size: 120,
+        size: 150,
       }),
 
       columnHelper.display({
@@ -293,44 +300,10 @@ export function useAccountStaffColumns(
       }),
 
       columnHelper.display({
-        id: "actions",
-        header: () => <div className="text-center text-sm">액션</div>,
-        cell: (props) => (
-          <AccountStaffRegistrationTableActions
-            row={props.row.original}
-            retreatSlug={retreatSlug}
-          />
-        ),
-        size: 150,
-      }),
-
-      columnHelper.accessor("confirmedBy", {
-        id: "confirmedBy",
-        header: () => <div className="text-center text-sm">처리자명</div>,
-        cell: (info) => (
-          <div className="text-center px-2 py-1 whitespace-nowrap shrink-0">
-            {info.getValue() || "-"}
-          </div>
-        ),
-        size: 100,
-      }),
-
-      columnHelper.accessor("paymentConfirmedAt", {
-        id: "paymentConfirmedAt",
-        header: () => <div className="text-center text-sm">처리 시각</div>,
-        cell: (info) => (
-          <div className="text-center px-2 py-1 whitespace-nowrap shrink-0 text-gray-600">
-            {formatDate(info.getValue())}
-          </div>
-        ),
-        size: 140,
-      }),
-
-      columnHelper.display({
         id: "accountMemo",
         header: () => (
           <div className="text-center text-sm whitespace-normal">
-            회계
+            재정간사
             <br />
             메모
           </div>

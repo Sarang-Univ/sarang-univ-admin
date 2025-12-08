@@ -56,6 +56,7 @@ interface ScheduleChangeModalProps {
  * - 재정 간사, 행정 간사 등 여러 곳에서 재사용 가능
  * - 메모 모드 설정으로 다양한 시나리오 대응
  * - ScheduleChangeFormContent 통합
+ * - 중첩 다이얼로그 대신 인라인 확인 UI 사용 (Best Practice)
  *
  * @example
  * ```tsx
@@ -115,6 +116,7 @@ export function ScheduleChangeModal({
   const [calculatedAmount, setCalculatedAmount] = useState(originalAmount);
   const [memoContent, setMemoContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // 모달이 열릴 때마다 초기화
   useEffect(() => {
@@ -122,11 +124,12 @@ export function ScheduleChangeModal({
       setScheduleIds(initialScheduleIds);
       setCalculatedAmount(originalAmount);
       setMemoContent("");
+      setShowConfirm(false);
     }
   }, [open, initialScheduleIds, originalAmount]);
 
-  // 확인 버튼 핸들러
-  const handleConfirm = async () => {
+  // 최종 확인 핸들러
+  const handleFinalConfirm = async () => {
     setIsLoading(true);
     try {
       await onConfirm({
@@ -144,18 +147,21 @@ export function ScheduleChangeModal({
       onOpenChange(false);
     } catch (error) {
       console.error("일정 변경 처리 실패:", error);
-      addToast({
-        title: "오류",
-        description: "일정 변경 처리 중 오류가 발생했습니다.",
-        variant: "destructive",
-      });
+      // 에러 발생 시 확인 상태 해제하여 재시도 가능하게
+      setShowConfirm(false);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 모달 닫기 핸들러 (로딩 중에는 닫지 않음)
+  const handleOpenChange = (newOpen: boolean) => {
+    if (isLoading) return;
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -175,21 +181,45 @@ export function ScheduleChangeModal({
             setScheduleIds(ids);
             setCalculatedAmount(amount);
           }}
-          readOnly={isLoading}
+          readOnly={isLoading || showConfirm}
         />
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
-            취소
-          </Button>
-          <Button onClick={handleConfirm} disabled={isLoading}>
-            {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {confirmButtonText}
-          </Button>
+          {showConfirm ? (
+            // 확인 UI (인라인)
+            <div className="flex items-center justify-between w-full">
+              <p className="text-sm text-muted-foreground">
+                정말로 일정을 변경하시겠습니까?
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowConfirm(false)}
+                  disabled={isLoading}
+                >
+                  취소
+                </Button>
+                <Button onClick={handleFinalConfirm} disabled={isLoading}>
+                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  확인
+                </Button>
+              </div>
+            </div>
+          ) : (
+            // 기본 UI
+            <>
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+              >
+                취소
+              </Button>
+              <Button onClick={() => setShowConfirm(true)} disabled={isLoading}>
+                {confirmButtonText}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
