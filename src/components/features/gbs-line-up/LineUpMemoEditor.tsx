@@ -1,21 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Save, X, Trash2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { debounce } from "lodash";
 
 interface LineUpMemoEditorProps<T extends { id: string }> {
   row: T;
@@ -32,10 +21,12 @@ interface LineUpMemoEditorProps<T extends { id: string }> {
 }
 
 /**
- * LineUp 메모 에디터 (편집 중 버퍼링 + Debounce + Optimistic Update 지원)
+ * LineUp 메모 에디터 (수동 저장 + 버퍼링 + Optimistic Update 지원)
  *
+ * ✅ 저장 버튼 클릭 시 저장
+ * ✅ 취소 버튼 클릭 시 편집 모드 종료
+ * ✅ 삭제 버튼 클릭 시 확인 모달 후 삭제
  * ✅ 편집 중에도 외부 변경사항을 버퍼링하여 보존
- * ✅ Debounce 2초로 자동 저장
  * ✅ 충돌 감지 시 사용자에게 알림
  * ✅ Optimistic Update와 완벽 호환
  *
@@ -71,7 +62,7 @@ export function LineUpMemoEditor<T extends { id: string }>({
   const [isEditing, setIsEditing] = useState(false);
   const [localMemoValue, setLocalMemoValue] = useState(initialMemoValue);
   const [localColor, setLocalColor] = useState(initialColorValue);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // ✅ 버퍼: 편집 중 외부에서 들어온 변경사항 저장
   const [pendingExternalUpdate, setPendingExternalUpdate] = useState<{
@@ -125,36 +116,6 @@ export function LineUpMemoEditor<T extends { id: string }>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialMemoValue, initialColorValue, isEditing, row.id]);
 
-  // ✅ Debounce 2초 자동 저장
-  const debouncedSave = useMemo(
-    () =>
-      debounce(async (id: string, memo: string, color: string, isExisting: boolean) => {
-        try {
-          const processedColor = color === "" ? undefined : color;
-          const processedMemo = memo.trim();
-
-          if (isExisting) {
-            await onUpdate(id, processedMemo, processedColor);
-          } else {
-            await onSave(id, processedMemo, processedColor);
-          }
-
-          // 저장 성공 시 마지막 저장 값 업데이트
-          lastSavedValueRef.current = { memo: processedMemo, color: color };
-          setShowConflictWarning(false);
-        } catch (error) {
-          console.error("메모 자동 저장 실패:", error);
-        }
-      }, 2000),
-    [onSave, onUpdate]
-  );
-
-  // Cleanup
-  useEffect(() => {
-    return () => {
-      debouncedSave.cancel();
-    };
-  }, [debouncedSave]);
 
   // ✅ 변경사항 감지
   const hasChanges =
@@ -162,25 +123,19 @@ export function LineUpMemoEditor<T extends { id: string }>({
     localColor !== (memoColor || "");
   const hasExisting = hasExistingMemo ? hasExistingMemo(row) : !!memoValue;
 
-  // ✅ 값 변경 시 자동 저장 (Debounce)
+  // ✅ 값 변경 (저장은 버튼 클릭 시에만)
   const handleValueChange = (memo: string, color: string) => {
     setLocalMemoValue(memo);
     setLocalColor(color);
-
-    // 값이 있을 때만 자동 저장
-    if (memo.trim() || color) {
-      debouncedSave(row.id, memo, color, hasExisting);
-    }
   };
 
-  // ✅ 수동 저장
+  // ✅ 저장 버튼 클릭 시 저장
   const handleSave = async () => {
     if (!hasChanges || (!localMemoValue.trim() && !localColor)) {
       return;
     }
 
-    // Debounce 취소 (즉시 저장)
-    debouncedSave.cancel();
+    setIsSaving(true);
 
     try {
       const processedColor = localColor === "" ? undefined : localColor;
@@ -197,6 +152,8 @@ export function LineUpMemoEditor<T extends { id: string }>({
       setShowConflictWarning(false);
     } catch (error) {
       console.error("메모 저장 실패:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -228,14 +185,10 @@ export function LineUpMemoEditor<T extends { id: string }>({
     }
   };
 
-  const handleDeleteConfirm = async () => {
-    try {
-      await onDelete(row.id);
-      setShowDeleteDialog(false);
-      setIsEditing(false);
-    } catch (error) {
-      console.error("메모 삭제 실패:", error);
-    }
+  // ✅ 삭제 처리 (확인 다이얼로그는 훅에서 처리)
+  const handleDelete = async () => {
+    setIsEditing(false);
+    await onDelete(row.id);
   };
 
   // ✅ 편집 모드 UI
@@ -272,7 +225,7 @@ export function LineUpMemoEditor<T extends { id: string }>({
             value={localMemoValue}
             onChange={(e) => handleValueChange(e.target.value, localColor)}
             placeholder={placeholder}
-            disabled={loading}
+            disabled={isSaving}
             maxLength={maxLength}
             className={cn(
               "text-sm resize-none w-full transition-all",
@@ -335,8 +288,8 @@ export function LineUpMemoEditor<T extends { id: string }>({
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={loading}
+              onClick={handleDelete}
+              disabled={isSaving}
               className="h-8 px-3 text-red-500 hover:text-red-700 hover:bg-red-50"
               aria-label="메모 삭제"
             >
@@ -350,11 +303,11 @@ export function LineUpMemoEditor<T extends { id: string }>({
               size="sm"
               variant="default"
               onClick={handleSave}
-              disabled={loading || !hasChanges || (!localMemoValue.trim() && !localColor)}
+              disabled={isSaving || !hasChanges || (!localMemoValue.trim() && !localColor)}
               className="h-8 px-3"
               aria-label="메모 저장"
             >
-              {loading ? (
+              {isSaving ? (
                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
               ) : (
                 <>
@@ -368,7 +321,7 @@ export function LineUpMemoEditor<T extends { id: string }>({
               size="sm"
               variant="outline"
               onClick={handleCancel}
-              disabled={loading}
+              disabled={isSaving}
               className="h-8 px-3"
               aria-label="편집 취소"
             >
@@ -378,63 +331,36 @@ export function LineUpMemoEditor<T extends { id: string }>({
           </div>
         </div>
 
-        {/* ℹ️ 자동 저장 안내 */}
-        <p className="text-xs text-gray-500 text-center">
-          변경사항은 2초 후 자동 저장됩니다
-        </p>
       </div>
     );
   }
 
   // ✅ 읽기 모드 UI
   return (
-    <>
-      <div
-        className="flex flex-col gap-1 p-2 min-w-[200px] max-w-full"
-        onClick={(e) => e.stopPropagation()}
+    <div
+      className="flex flex-col gap-1 p-2 min-w-[200px] max-w-full"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setLocalMemoValue(initialMemoValue);
+          setLocalColor(initialColorValue);
+          setIsEditing(true);
+        }}
+        style={{ backgroundColor: memoColor || "transparent" }}
+        className={cn(
+          "w-full text-left text-sm p-2 rounded min-h-[32px]",
+          "whitespace-pre-wrap break-words transition-colors",
+          "focus:outline-none focus:ring-2 focus:ring-primary",
+          memoValue
+            ? "text-gray-700 hover:bg-opacity-80 border border-transparent hover:border-gray-300"
+            : "text-gray-400 italic hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400"
+        )}
+        aria-label={memoValue ? "메모 수정하기" : "메모 추가하기"}
       >
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setLocalMemoValue(initialMemoValue);
-            setLocalColor(initialColorValue);
-            setIsEditing(true);
-          }}
-          style={{ backgroundColor: memoColor || "transparent" }}
-          className={cn(
-            "w-full text-left text-sm p-2 rounded min-h-[32px]",
-            "whitespace-pre-wrap break-words transition-colors",
-            "focus:outline-none focus:ring-2 focus:ring-primary",
-            memoValue
-              ? "text-gray-700 hover:bg-opacity-80 border border-transparent hover:border-gray-300"
-              : "text-gray-400 italic hover:bg-gray-100 border border-dashed border-gray-300 hover:border-gray-400"
-          )}
-          aria-label={memoValue ? "메모 수정하기" : "메모 추가하기"}
-        >
-          {memoValue || "메모를 추가하려면 클릭하세요"}
-        </button>
-      </div>
-
-      {/* ✅ 삭제 확인 다이얼로그 */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>메모를 삭제하시겠습니까?</AlertDialogTitle>
-            <AlertDialogDescription>
-              이 작업은 되돌릴 수 없습니다. 메모가 영구적으로 삭제됩니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              삭제
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+        {memoValue || "메모를 추가하려면 클릭하세요"}
+      </button>
+    </div>
   );
 }

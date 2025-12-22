@@ -415,82 +415,82 @@ export function useGbsLineupSwr(retreatSlug: string, initialData?: UserRetreatGb
 
   /**
    * 라인업 메모 삭제 (HTTP 기반 + Optimistic Update)
+   *
+   * Best Practice: 확인 다이얼로그는 훅에서 처리
+   * - 프로젝트 전체에서 일관된 패턴 유지
+   * - 컴포넌트는 단순히 함수만 호출
+   * @see https://dev.to/metamodal/control-a-dialog-box-asynchronously-using-react-hooks-4ik7
    */
   const deleteLineupMemo = useCallback(
     async (userRetreatRegistrationMemoId: number) => {
-      return new Promise<void>((resolve, reject) => {
-        confirmDialog.show({
-          title: '메모 삭제',
-          description: '정말로 메모를 삭제하시겠습니까?',
-          onConfirm: async () => {
-            setIsMutating(true);
+      confirmDialog.show({
+        title: '메모 삭제',
+        description: '정말로 메모를 삭제하시겠습니까?',
+        onConfirm: async () => {
+          setIsMutating(true);
 
-            try {
-              // ✅ 1. Optimistic Update
-              if (swrKey) {
-                await mutate(
-                  swrKey,
-                  (currentData: UserRetreatGbsLineup[] | undefined) => {
-                    if (!currentData) return currentData;
-                    return currentData.map((item) => {
-                      if (item.lineupMemoId === userRetreatRegistrationMemoId) {
-                        return {
-                          ...item,
-                          lineupMemo: '',
-                          lineupMemocolor: '',
-                          lineupMemoId: null,
-                          updatedAt: new Date().toISOString(),
-                        };
-                      }
-                      return item;
-                    });
-                  },
-                  { revalidate: false, rollbackOnError: true }
-                );
-              }
-
-              // ✅ 2. HTTP API 호출
-              const response = await webAxios.delete(
-                `/api/v1/retreat/${retreatSlug}/line-up/${userRetreatRegistrationMemoId}/lineup-memo`
+          try {
+            // ✅ 1. Optimistic Update
+            if (swrKey) {
+              await mutate(
+                swrKey,
+                (currentData: UserRetreatGbsLineup[] | undefined) => {
+                  if (!currentData) return currentData;
+                  return currentData.map((item) => {
+                    if (item.lineupMemoId === userRetreatRegistrationMemoId) {
+                      return {
+                        ...item,
+                        lineupMemo: '',
+                        lineupMemocolor: '',
+                        lineupMemoId: null,
+                        updatedAt: new Date().toISOString(),
+                      };
+                    }
+                    return item;
+                  });
+                },
+                { revalidate: false, rollbackOnError: true }
               );
-
-              // ✅ 3. 서버 응답으로 캐시 업데이트
-              if (response.data?.userRetreatGbsLineup) {
-                await mutate(
-                  swrKey,
-                  (currentData: UserRetreatGbsLineup[] | undefined) => {
-                    if (!currentData) return currentData;
-                    return currentData.map((item) =>
-                      item.id === response.data.userRetreatGbsLineup.id
-                        ? { ...item, ...response.data.userRetreatGbsLineup }
-                        : item
-                    );
-                  },
-                  { revalidate: false }
-                );
-              } else {
-                await mutateSWR();
-              }
-
-              addToast({
-                title: '성공',
-                description: '메모가 삭제되었습니다.',
-                variant: 'success',
-              });
-
-              resolve();
-            } catch (error) {
-              addToast({
-                title: '오류',
-                description: '메모 삭제에 실패했습니다.',
-                variant: 'destructive',
-              });
-              reject(error);
-            } finally {
-              setIsMutating(false);
             }
-          },
-        });
+
+            // ✅ 2. HTTP API 호출
+            const response = await webAxios.delete(
+              `/api/v1/retreat/${retreatSlug}/line-up/${userRetreatRegistrationMemoId}/lineup-memo`
+            );
+
+            // ✅ 3. 서버 응답으로 캐시 업데이트
+            if (response.data?.userRetreatGbsLineup) {
+              await mutate(
+                swrKey,
+                (currentData: UserRetreatGbsLineup[] | undefined) => {
+                  if (!currentData) return currentData;
+                  return currentData.map((item) =>
+                    item.id === response.data.userRetreatGbsLineup.id
+                      ? { ...item, ...response.data.userRetreatGbsLineup }
+                      : item
+                  );
+                },
+                { revalidate: false }
+              );
+            } else {
+              await mutateSWR();
+            }
+
+            addToast({
+              title: '성공',
+              description: '메모가 삭제되었습니다.',
+              variant: 'success',
+            });
+          } catch (error) {
+            addToast({
+              title: '오류',
+              description: '메모 삭제에 실패했습니다.',
+              variant: 'destructive',
+            });
+          } finally {
+            setIsMutating(false);
+          }
+        },
       });
     },
     [swrKey, addToast, confirmDialog, retreatSlug, mutateSWR]
